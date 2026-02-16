@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pmcli"
+version = "0.1.0"
+description = "CLI for Kalshi and ForecastEx prediction markets"
+requires-python = ">=3.9"
+dependencies = [
+    "click>=8.1",
+    "python-dotenv>=1.0",
+    "kalshi-python>=2.1",
+    "cryptography>=41.0",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+ibkr = [
+    # ibapi must be installed manually from IBKR TWS API distribution:
+    # https://interactivebrokers.github.io/tws-api/initial_setup.html
+    # Download, extract, then: pip install /path/to/twsapi/IBJts/source/pythonclient
+]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+pmcli = "pmcli.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
