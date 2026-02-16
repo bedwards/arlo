@@ -1,13 +1,15 @@
-# CLAUDE.md - Prediction Markets CLI
+# CLAUDE.md - Arlo: AI Superforecasting System
 
 ## Project Overview
-CLI tool (`pmcli`) for trading on the two CFTC-regulated USD prediction markets with API access:
+**Arlo** is a competitive AI superforecasting system for analysis, navigation, discovery, research, and action. It operates as a 7-stage pipeline: Ingest, Discover, Question, Forecast, Trade, Publish, Learn.
+
+Trading is executed on the two CFTC-regulated USD prediction markets with API access:
 - **Kalshi** — REST API, RSA key pair auth, Python SDK (`kalshi-python`)
 - **ForecastEx** — IBKR TWS API, requires TWS/IB Gateway running locally
 
 ## Setup
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 cp .env.example .env  # Edit with real credentials
 pip install -e ".[dev]"
 ```
@@ -26,54 +28,100 @@ pip install -e ".[dev]"
 
 ## Usage
 ```bash
-# Kalshi
-pmcli kalshi balance
-pmcli kalshi positions
-pmcli kalshi markets list --status open --limit 20
-pmcli kalshi markets search "bitcoin"
-pmcli kalshi markets detail TICKER
-pmcli kalshi markets orderbook TICKER
-pmcli kalshi buy TICKER --side yes --count 5 --price 45
-pmcli kalshi orders
-pmcli kalshi cancel ORDER_ID
-
-# ForecastEx (Interactive Brokers)
-pmcli fx balance
-pmcli fx positions
-pmcli fx buy SYMBOL --expiry 20260331 --strike 40500 --right C --count 10 --price 0.57
-pmcli fx orders
-pmcli fx cancel ORDER_ID
+arlo status               # System status check
 ```
 
 ## Architecture
 ```
-src/pmcli/
-├── cli.py              # Click entry point, loads .env
-├── config.py           # Config classes reading from env vars
-├── display.py          # Shared output formatting (rich tables)
-├── kalshi/
-│   ├── client.py       # Wraps kalshi-python SDK
-│   └── commands.py     # Click commands
-└── forecastex/
-    ├── client.py       # Wraps ibapi with threading
-    └── commands.py     # Click commands
+src/arlo/
+├── __init__.py
+├── cli.py                  # Typer CLI entry point
+├── config.py               # Configuration from env vars and TOML files
+├── db/
+│   ├── postgres.py         # PostgreSQL + pgvector connection
+│   ├── duckdb_conn.py      # DuckDB analytical queries
+│   └── migrations/         # Alembic migration files
+├── ingest/
+│   ├── pipeline.py         # Main ingestion orchestrator
+│   ├── youtube.py          # yt-dlp transcript extraction
+│   ├── substack.py         # RSS + Playwright scraping
+│   ├── news.py             # RSS feeds + Brave Search
+│   ├── markets.py          # Prediction market data (Metaculus, Kalshi, etc.)
+│   ├── economic.py         # FRED, World Bank, BLS, Census
+│   ├── academic.py         # arXiv RSS
+│   └── embedder.py         # sentence-transformers embedding pipeline
+├── discover/
+│   ├── topic_model.py      # HDBSCAN temporal topic clustering
+│   ├── naive_observer.py   # Van Riper protocol via Claude
+│   ├── oscillation.py      # Neustadt-May temporal oscillation
+│   ├── five_whys.py        # Toyota Five Whys via Claude
+│   ├── cross_domain.py     # NetworkX graph collision detection
+│   └── domain_report.py    # Aggregate discovery outputs
+├── question/
+│   ├── operationalize.py   # Raw → operationalized forecasting questions
+│   ├── cluster.py          # Bayesian Question Clustering
+│   ├── novelty.py          # Check against existing markets
+│   └── prioritize.py       # Rank by information value
+├── forecast/
+│   ├── engine.py           # Ensemble orchestrator
+│   ├── claude_deep.py      # Claude deep research forecaster
+│   ├── claude_adversary.py # Claude adversarial challenger
+│   ├── market_implied.py   # Prediction market probability aggregator
+│   ├── base_rate.py        # Historical base rate engine
+│   ├── time_series.py      # statsforecast models
+│   ├── aggregate.py        # Weighted aggregation + extremization
+│   └── calibrate.py        # Platt scaling, isotonic regression
+├── trade/
+│   ├── edge_detector.py    # Identify forecast-vs-market divergences
+│   ├── kelly.py            # Kelly criterion position sizing
+│   ├── kalshi_client.py    # Kalshi API trading (migrated from pmcli)
+│   ├── ibkr_client.py      # TWS API for ForecastEx (migrated from pmcli)
+│   ├── risk.py             # Risk management rules
+│   └── portfolio.py        # Position tracking and P&L
+├── publish/
+│   ├── charts.py           # Altair + Plotly chart generation
+│   ├── essay.py            # Claude essay generation
+│   └── export.py           # Markdown + image export
+├── learn/
+│   ├── scoring.py          # Brier and log score computation
+│   ├── calibration.py      # Calibration analysis
+│   ├── weights.py          # Component weight optimization
+│   ├── bias_audit.py       # Claude-powered bias detection
+│   └── backtest.py         # Historical backtesting framework
+└── shared/
+    ├── display.py          # Rich terminal output formatting
+    ├── claude_api.py       # Claude Opus API interface
+    ├── brave_search.py     # Brave Search API client
+    └── prompts/            # Prompt templates as .txt files
 ```
 
 ## Key Constraints
 - **Kalshi**: Prices in cents (1-99), REST API with RSA-PSS signature auth
 - **ForecastEx**: LMT orders only, BUY only (buy opposing contract to exit), contracts modeled as OPT (C=Yes, P=No), requires TWS/Gateway running
 - Both exchanges: USD only, CFTC-regulated
+- **No local LLMs**: All LLM work uses Claude API via Anthropic SDK
+- **Embeddings**: sentence-transformers (not Ollama)
 
 ## Conventions
 - Client modules handle SDK init + auth + raw API calls
-- Command modules handle Click decorators + user interaction + display
+- Command modules handle Typer decorators + user interaction + display
 - All prices displayed as dollars to user; Kalshi internal prices in cents
 - Order confirmation prompt before every trade execution
 - Lazy imports in commands so missing credentials for one exchange don't break the other
+- Stub modules contain a single docstring until implemented
 
 ## Dependencies
-- `click` — CLI framework
-- `python-dotenv` — .env loading
-- `kalshi-python` — Official Kalshi SDK
-- `ibapi` — Official IB TWS API
+- `typer` — CLI framework
 - `rich` — Terminal output formatting
+- `python-dotenv` — .env loading
+- `anthropic` — Claude API
+- `kalshi-python` — Official Kalshi SDK
+- `ibapi` — Official IB TWS API (manual install)
+- `sentence-transformers` — Local embeddings
+- `polars` / `pandas` — Data processing
+- `altair` / `plotly` — Visualization
+- `psycopg` / `pgvector` / `duckdb` — Databases
+- `sqlalchemy` / `alembic` — ORM and migrations
+- `playwright` / `beautifulsoup4` / `feedparser` — Web scraping
+- `statsforecast` — Time series models
+- `scikit-learn` / `hdbscan` / `networkx` / `pgmpy` — ML / NLP

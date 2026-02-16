@@ -2,7 +2,7 @@ import uuid
 
 from kalshi_python import Configuration, KalshiClient, CreateOrderRequest
 
-from pmcli.config import KalshiConfig
+from arlo.config import KalshiConfig
 
 
 def get_client(cfg: KalshiConfig = None) -> KalshiClient:

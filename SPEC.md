@@ -26,7 +26,7 @@ Sources:
 DO NOT DOWNGRADE/TRADE-OFF. STOP IF YOU NEED MY HELP.
 
 
-# CASSANDRA: Competitive AI Superforecasting System for Analysis, Navigation, Discovery, Research, and Action
+# Arlo: Competitive AI Superforecasting System for Analysis, Navigation, Discovery, Research, and Action
 
 ## System Specification for Claude Code / Claude Opus 4.6 Implementation
 
@@ -41,7 +41,7 @@ DO NOT DOWNGRADE/TRADE-OFF. STOP IF YOU NEED MY HELP.
 
 This system is not an analytics dashboard. It is not a chatbot with access to data. It is a **prediction engine** that begins upstream of where every other system begins — at the stage of **identifying what questions are not being asked**.
 
-The article by Dan Gardner (PastPresentFuture, Feb 15 2026) crystallizes the thesis: in a world where AI delivers superforecaster-tier answers, **the bottleneck shifts to questions**. Cassandra's primary innovation is that it starts from raw signal — YouTube transcripts, Substack posts, news feeds, academic papers, podcasts, government filings — and applies structured epistemic techniques (Five Whys, Neustadt-May oscillation, Van Riper naive questioning, radical curiosity, design thinking) to **surface the questions nobody is asking yet**. Only then does it forecast. Only then does it act.
+The article by Dan Gardner (PastPresentFuture, Feb 15 2026) crystallizes the thesis: in a world where AI delivers superforecaster-tier answers, **the bottleneck shifts to questions**. Arlo's primary innovation is that it starts from raw signal — YouTube transcripts, Substack posts, news feeds, academic papers, podcasts, government filings — and applies structured epistemic techniques (Five Whys, Neustadt-May oscillation, Van Riper naive questioning, radical curiosity, design thinking) to **surface the questions nobody is asking yet**. Only then does it forecast. Only then does it act.
 
 The system operates as a pipeline with seven stages, each implemented as a distinct subsystem with its own tooling, data stores, and Claude Opus 4.6 interface patterns.
 
@@ -50,8 +50,8 @@ The system operates as a pipeline with seven stages, each implemented as a disti
 1. **Questions before answers.** The system's most valuable output is not a probability — it is the question that nobody else thought to ask.
 2. **Prediction, not analysis.** Every output is oriented toward the future. Historical data exists to calibrate forecasts, not to produce retrospectives.
 3. **Epistemic humility encoded in architecture.** The system assumes its own ignorance. Every pipeline stage explicitly models uncertainty. Brier scores are tracked and displayed for every prediction.
-4. **Reflexivity awareness.** When Cassandra identifies a tradeable edge, it models whether that edge will be arbitraged away by the time it acts.
-5. **Human-in-the-loop for irreversible actions.** Cassandra surfaces trades, but Brian confirms them. Cassandra drafts essays, but Brian publishes them.
+4. **Reflexivity awareness.** When Arlo identifies a tradeable edge, it models whether that edge will be arbitraged away by the time it acts.
+5. **Human-in-the-loop for irreversible actions.** Arlo surfaces trades, but Brian confirms them. Arlo drafts essays, but Brian publishes them.
 
 ---
 
@@ -59,7 +59,7 @@ The system operates as a pipeline with seven stages, each implemented as a disti
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        CASSANDRA SYSTEM                         │
+│                        Arlo SYSTEM                         │
 │                     Mac Studio (Apple Silicon)                   │
 │                                                                 │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
@@ -81,7 +81,7 @@ The system operates as a pipeline with seven stages, each implemented as a disti
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │                    SHARED INFRASTRUCTURE                  │   │
-│  │  PostgreSQL │ Ollama │ Claude API │ Cron │ Git │ DuckDB  │   │
+│  │  PostgreSQL │ Claude API │ Cron │ Git │ DuckDB           │   │
 │  └─────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -91,7 +91,6 @@ The system operates as a pipeline with seven stages, each implemented as a disti
 | Component | Technology | License/Cost |
 |-----------|-----------|--------------|
 | Primary LLM | Claude Opus 4.6 via Claude Max subscription (already owned) | Included |
-| Local LLM (batch/background) | Ollama + qwen2.5-coder:32b, llama3.3:70b | Free/Open |
 | Orchestration | Python 3.12+ | Free |
 | Task scheduling | `crontab` + custom Python scheduler | Free |
 | Database (structured) | PostgreSQL 16 (Homebrew) | Free |
@@ -103,7 +102,7 @@ The system operates as a pipeline with seven stages, each implemented as a disti
 | RSS/Atom feeds | `feedparser` | Free |
 | Substack scraping | Custom Playwright scraper | Free |
 | PDF extraction | `pymupdf` (fitz) | Free |
-| NLP/Embeddings | `sentence-transformers` (local) via Ollama embeddings | Free |
+| NLP/Embeddings | `sentence-transformers` (local) | Free |
 | Vector search | `pgvector` extension for PostgreSQL | Free |
 | Prediction markets data | Kalshi public API (free, no auth for reads) | Free |
 | Prediction markets data | Metaculus public API | Free |
@@ -134,7 +133,7 @@ Continuously ingest raw signal from diverse sources. This is the "eyes and ears"
 - **Channels monitored:** Configurable list stored in `sources.toml`
 - **Frequency:** Daily check for new videos on subscribed channels
 - **Storage:** Raw transcript text + metadata (channel, title, date, URL, duration) in PostgreSQL `transcripts` table
-- **Processing:** Chunk into 2000-token segments with 200-token overlap; generate embeddings via Ollama `nomic-embed-text`; store in `pgvector`
+- **Processing:** Chunk into 2000-token segments with 200-token overlap; generate embeddings via `sentence-transformers`; store in `pgvector`
 
 #### 3.2.2 Substack Posts
 - **Tool:** RSS feeds where available; Playwright headless scraper for paywalled content the user subscribes to
@@ -185,7 +184,7 @@ class IngestionPipeline:
     def __init__(self):
         self.sources = load_toml("sources.toml")
         self.db = PostgresConnection()
-        self.embedder = OllamaEmbedder("nomic-embed-text")
+        self.embedder = SentenceTransformerEmbedder("all-MiniLM-L6-v2")
         self.vectorstore = PGVector(self.db)
     
     async def ingest_source(self, source: Source) -> list[Document]:
@@ -273,7 +272,7 @@ CREATE TABLE economic_series (
 
 ### 4.1 Purpose
 
-This is where Cassandra diverges from every other forecasting system. Instead of starting with a pre-defined set of questions, Stage 2 analyzes the ingested signal to identify:
+This is where Arlo diverges from every other forecasting system. Instead of starting with a pre-defined set of questions, Stage 2 analyzes the ingested signal to identify:
 
 1. **Emerging domains** — topic clusters that are gaining attention disproportionate to their prior baseline
 2. **Attention gaps** — important domains that are *under-discussed* relative to their potential impact
@@ -455,7 +454,7 @@ Before adding a question to the active set, check:
 3. **Polymarket/Manifold:** Similar market exists?
 
 If yes: import the existing market's probability as a prior. Flag as "market-tracked."
-If no: flag as **"novel question"** — these are Cassandra's highest-value outputs.
+If no: flag as **"novel question"** — these are Arlo's highest-value outputs.
 
 ### 5.5 Output
 
@@ -487,11 +486,11 @@ CREATE TABLE questions (
 
 ### 6.1 Purpose
 
-Generate calibrated probabilistic forecasts for each operationalized question. This is where Cassandra competes with Mantic and Good Judgment's Superforecasters.
+Generate calibrated probabilistic forecasts for each operationalized question. This is where Arlo competes with Mantic and Good Judgment's Superforecasters.
 
 ### 6.2 Forecasting Architecture
 
-Cassandra uses an **ensemble of diverse forecasting approaches**, then aggregates and extremizes in the style of the Good Judgment Project's winning algorithm.
+Arlo uses an **ensemble of diverse forecasting approaches**, then aggregates and extremizes in the style of the Good Judgment Project's winning algorithm.
 
 #### 6.2.1 Component Forecasters
 
@@ -515,11 +514,6 @@ Cassandra uses an **ensemble of diverse forecasting approaches**, then aggregate
   - "What evidence is Forecaster A underweighting?"
   - "What base rate is Forecaster A ignoring?"
 - Produces an independent probability estimate
-
-**Forecaster C: Local LLM (Ollama — llama3.3:70b) — Cheap Diverse Perspective**
-- Lower-cost forecaster that provides diversity
-- Given a simplified brief (no deep research, just the question + key context)
-- 5 independent runs, median taken
 
 **Forecaster D: Market-Implied Probability**
 - For questions with existing prediction market contracts:
@@ -549,7 +543,7 @@ Cassandra uses an **ensemble of diverse forecasting approaches**, then aggregate
 
 Following the GJP literature:
 
-1. **Collect** all component forecasts: `[pA, pB, pC, pD, pE, pF]`
+1. **Collect** all component forecasts: `[pA, pB, pD, pE, pF]`
 2. **Weight** by track record (initially equal, updated as forecasts resolve):
    ```python
    # Brier-score-weighted aggregation
@@ -610,37 +604,37 @@ CREATE TABLE forecast_scores (
 
 ### 7.1 Purpose
 
-When Cassandra's forecast diverges significantly from market prices, identify and execute trades on Kalshi and ForecastEx (via IBKR TWS API).
+When Arlo's forecast diverges significantly from market prices, identify and execute trades on Kalshi and ForecastEx (via IBKR TWS API).
 
 ### 7.2 Edge Detection
 
 ```python
-def detect_edge(cassandra_prob: float, market_prob: float, 
+def detect_edge(arlo_prob: float, market_prob: float, 
                 market: str, volume: float) -> TradeSignal | None:
     """
     Identify tradeable edges.
     
     Rules:
-    1. Minimum divergence: |cassandra - market| > 0.10 (10 percentage points)
-    2. Minimum confidence: cassandra's confidence interval must not overlap 
+    1. Minimum divergence: |arlo - market| > 0.10 (10 percentage points)
+    2. Minimum confidence: arlo's confidence interval must not overlap 
        with market price
     3. Minimum volume: market must have >$1000 daily volume (liquidity check)
     4. Reflexivity check: Is this edge likely to persist? 
        (Novel questions: yes. Heavily traded questions: probably not.)
     5. Kelly criterion position sizing (fractional Kelly at 25%)
     """
-    divergence = cassandra_prob - market_prob
+    divergence = arlo_prob - market_prob
     if abs(divergence) < 0.10:
         return None
     
     # Kelly criterion for binary events
     # f* = (bp - q) / b where b = odds, p = true prob, q = 1-p
-    if divergence > 0:  # Cassandra says more likely than market
+    if divergence > 0:  # Arlo says more likely than market
         b = (1 / market_prob) - 1  # implied odds of buying YES
-        f_star = (b * cassandra_prob - (1 - cassandra_prob)) / b
-    else:  # Cassandra says less likely
+        f_star = (b * arlo_prob - (1 - arlo_prob)) / b
+    else:  # Arlo says less likely
         b = (1 / (1 - market_prob)) - 1  # implied odds of buying NO
-        f_star = (b * (1 - cassandra_prob) - cassandra_prob) / b
+        f_star = (b * (1 - arlo_prob) - arlo_prob) / b
     
     if f_star <= 0:
         return None
@@ -759,7 +753,7 @@ CREATE TABLE positions (
     exit_price FLOAT,
     exit_date TIMESTAMPTZ,
     pnl FLOAT,
-    cassandra_prob_at_entry FLOAT,
+    arlo_prob_at_entry FLOAT,
     market_prob_at_entry FLOAT,
     edge_at_entry FLOAT,
     status TEXT DEFAULT 'open'     -- open, closed, expired
@@ -781,7 +775,7 @@ CREATE TABLE trade_log (
 
 - **Maximum position size:** 5% of bankroll per question
 - **Maximum total exposure:** 30% of bankroll across all positions
-- **Stop-loss:** Close position if Cassandra's forecast flips direction (i.e., bought YES but forecast now <50%)
+- **Stop-loss:** Close position if Arlo's forecast flips direction (i.e., bought YES but forecast now <50%)
 - **Daily P&L limit:** Halt new trades if daily loss exceeds 3% of bankroll
 - **Correlation check:** Limit exposure to correlated questions (e.g., multiple recession indicators)
 
@@ -791,7 +785,7 @@ CREATE TABLE trade_log (
 
 ### 8.1 Purpose
 
-Produce publication-quality essays with charts for Brian's Substacks, incorporating Cassandra's predictions, analysis, and the novel questions it has identified.
+Produce publication-quality essays with charts for Brian's Substacks, incorporating Arlo's predictions, analysis, and the novel questions it has identified.
 
 ### 8.2 Chart Generation Pipeline
 
@@ -802,16 +796,16 @@ import plotly.graph_objects as go
 
 class ChartEngine:
     """
-    Generate charts from Cassandra's data using Polars + Altair + Plotly.
+    Generate charts from Arlo's data using Polars + Altair + Plotly.
     """
     
     def forecast_history_chart(self, question_id: int) -> alt.Chart:
         """
-        Show how Cassandra's forecast evolved over time vs. market price.
+        Show how Arlo's forecast evolved over time vs. market price.
         Altair for static Substack-ready SVG/PNG.
         """
         df = pl.read_database(
-            f"""SELECT f.forecast_date, f.probability as cassandra,
+            f"""SELECT f.forecast_date, f.probability as arlo,
                        m.current_probability as market
                 FROM forecasts f
                 LEFT JOIN market_snapshots m ON ...
@@ -822,16 +816,16 @@ class ChartEngine:
         
         base = alt.Chart(df.to_pandas()).encode(x='forecast_date:T')
         
-        cassandra_line = base.mark_line(color='#e63946', strokeWidth=2).encode(
-            y=alt.Y('cassandra:Q', title='Probability', scale=alt.Scale(domain=[0, 1]))
+        arlo_line = base.mark_line(color='#e63946', strokeWidth=2).encode(
+            y=alt.Y('arlo:Q', title='Probability', scale=alt.Scale(domain=[0, 1]))
         )
         market_line = base.mark_line(color='#457b9d', strokeDash=[5,5]).encode(
             y='market:Q'
         )
         
-        return (cassandra_line + market_line).properties(
+        return (arlo_line + market_line).properties(
             width=700, height=400,
-            title='Cassandra vs. Market Probability'
+            title='Arlo vs. Market Probability'
         )
     
     def calibration_chart(self) -> alt.Chart:
@@ -862,7 +856,7 @@ class ChartEngine:
         
         return (perfect + calibration).properties(
             width=500, height=500,
-            title='Cassandra Calibration Plot'
+            title='Arlo Calibration Plot'
         )
     
     def plotly_interactive_dashboard(self, domain_id: int) -> go.Figure:
@@ -891,14 +885,14 @@ Style: Modern literary nonfiction in the tradition of long-form journalism.
 Not academic. Not dry. Not listicles. Think Dan Gardner meets Matt Levine 
 meets Brian's own style — incisive, occasionally wry, always substantive.
 
-Structure for a typical Cassandra essay:
+Structure for a typical Arlo essay:
 1. HOOK: Open with the question nobody is asking (the Stage 2 output)
 2. CONTEXT: What is everyone paying attention to instead? Why?
-3. DISCOVERY: How Cassandra found this question. What naive questions led here.
+3. DISCOVERY: How Arlo found this question. What naive questions led here.
 4. EVIDENCE: Data, charts, historical analogies. Show the Five Whys chain.
-5. FORECAST: Cassandra's probability estimate. What would change it.
+5. FORECAST: Arlo's probability estimate. What would change it.
 6. IMPLICATIONS: What should you do if this forecast is right? What if wrong?
-7. UNCERTAINTY: What Cassandra doesn't know. Where the forecast horizon lies.
+7. UNCERTAINTY: What Arlo doesn't know. Where the forecast horizon lies.
 
 Include chart references: [CHART: forecast_history_q42.png]
 Include data references: cite specific sources, dates, numbers.
@@ -957,15 +951,15 @@ After every 50 resolved questions, re-estimate optimal weights for the aggregati
 
 ### 9.5 Bias Detection
 
-Claude Opus 4.6 reviews Cassandra's forecast history:
+Claude Opus 4.6 reviews Arlo's forecast history:
 
 ```
-SYSTEM: You are auditing Cassandra's forecasting record. 
+SYSTEM: You are auditing Arlo's forecasting record. 
 
 Review the last 100 resolved forecasts. Identify:
 1. Systematic overconfidence or underconfidence in any domain
 2. Recurring errors (e.g., consistently underestimating political instability)
-3. Domains where Cassandra outperforms markets vs. underperforms
+3. Domains where Arlo outperforms markets vs. underperforms
 4. Questions where the Five Whys / naive questioning actually surfaced 
    important novel questions vs. where it produced noise
 5. Recommendations for adjusting the pipeline
@@ -1008,38 +1002,38 @@ The entire system is operated via a CLI built with `typer` and `rich`:
 
 ```bash
 # Run the full pipeline
-cassandra run --stage all
+arlo run --stage all
 
 # Run specific stages
-cassandra ingest --source youtube --channel "@PBSnewshour"
-cassandra discover --window 7d
-cassandra question --domain "rare-earth-supply-chains"
-cassandra forecast --question-id 42
-cassandra forecast --all-active
+arlo ingest --source youtube --channel "@PBSnewshour"
+arlo discover --window 7d
+arlo question --domain "rare-earth-supply-chains"
+arlo forecast --question-id 42
+arlo forecast --all-active
 
 # Interactive exploration
-cassandra explore  # Rich TUI showing domains, questions, forecasts
-cassandra ask "What questions should I be asking about semiconductor supply?"
-cassandra why "Why is China restricting rare earth exports?"  # Five Whys
+arlo explore  # Rich TUI showing domains, questions, forecasts
+arlo ask "What questions should I be asking about semiconductor supply?"
+arlo why "Why is China restricting rare earth exports?"  # Five Whys
 
 # Trading
-cassandra scan-edges  # Show all questions where Cassandra disagrees with market
-cassandra trade --question-id 42 --confirm  # Execute trade (with confirmation)
-cassandra portfolio  # Show all positions, P&L
+arlo scan-edges  # Show all questions where Arlo disagrees with market
+arlo trade --question-id 42 --confirm  # Execute trade (with confirmation)
+arlo portfolio  # Show all positions, P&L
 
 # Publishing
-cassandra essay --domain "rare-earth-supply-chains" --output essay.md
-cassandra chart --question-id 42 --type forecast-history
+arlo essay --domain "rare-earth-supply-chains" --output essay.md
+arlo chart --question-id 42 --type forecast-history
 
 # Calibration
-cassandra score  # Show overall Brier score and calibration
-cassandra audit  # Run bias detection
-cassandra backtest --config new_prompt.toml --questions metaculus-2024
+arlo score  # Show overall Brier score and calibration
+arlo audit  # Run bias detection
+arlo backtest --config new_prompt.toml --questions metaculus-2024
 
 # System
-cassandra status  # Show ingestion status, database sizes, last run times
-cassandra sources list
-cassandra sources add --type youtube --url "https://youtube.com/@channel"
+arlo status  # Show ingestion status, database sizes, last run times
+arlo sources list
+arlo sources add --type youtube --url "https://youtube.com/@channel"
 ```
 
 ---
@@ -1047,10 +1041,10 @@ cassandra sources add --type youtube --url "https://youtube.com/@channel"
 ## 11. DIRECTORY STRUCTURE
 
 ```
-cassandra/
+arlo/
 ├── README.md
 ├── pyproject.toml              # Project config, dependencies
-├── cassandra/
+├── arlo/
 │   ├── __init__.py
 │   ├── cli.py                  # Typer CLI entry point
 │   ├── config.py               # Load sources.toml, settings
@@ -1068,7 +1062,7 @@ cassandra/
 │   │   ├── markets.py          # Metaculus, Kalshi, Polymarket, Manifold
 │   │   ├── economic.py         # FRED, World Bank, BLS, etc.
 │   │   ├── academic.py         # arXiv RSS
-│   │   └── embedder.py         # Ollama embedding pipeline
+│   │   └── embedder.py         # sentence-transformers embedding pipeline
 │   ├── discover/
 │   │   ├── __init__.py
 │   │   ├── topic_model.py      # HDBSCAN clustering
@@ -1088,7 +1082,6 @@ cassandra/
 │   │   ├── engine.py           # Ensemble orchestrator
 │   │   ├── claude_deep.py      # Claude deep research forecaster
 │   │   ├── claude_adversary.py # Claude adversarial forecaster
-│   │   ├── local_llm.py        # Ollama-based forecaster
 │   │   ├── market_implied.py   # Prediction market aggregator
 │   │   ├── base_rate.py        # Historical base rate engine
 │   │   ├── time_series.py      # statsforecast models
@@ -1117,7 +1110,6 @@ cassandra/
 │   └── shared/
 │       ├── __init__.py
 │       ├── claude_api.py       # Claude Opus 4.6 interface (via Anthropic API)
-│       ├── ollama_api.py       # Local LLM interface
 │       ├── brave_search.py     # Brave Search API
 │       └── prompts/            # All prompt templates as .txt files
 │           ├── naive_observer.txt
@@ -1134,7 +1126,6 @@ cassandra/
 │   └── credentials.toml        # API keys (git-ignored)
 ├── scripts/
 │   ├── setup_db.sh             # Initialize PostgreSQL + pgvector
-│   ├── setup_ollama.sh         # Pull required models
 │   ├── download_bulk_data.sh   # Initial bulk data download
 │   └── cron_setup.sh           # Install cron jobs
 ├── output/
@@ -1159,7 +1150,7 @@ cassandra/
 
 ```toml
 [project]
-name = "cassandra"
+name = "arlo"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
@@ -1205,7 +1196,6 @@ dependencies = [
     
     # APIs
     "anthropic>=0.34",        # Claude API
-    "ollama>=0.3",            # Ollama Python client
     
     # Trading
     "ibapi>=10.19",           # IBKR TWS API
@@ -1229,18 +1219,14 @@ dependencies = [
 
 ```bash
 # Prerequisites
-brew install postgresql@16 ollama
+brew install postgresql@16
 brew install --cask docker  # Optional, for isolated services
 
 # PostgreSQL with pgvector
 brew install pgvector
-createdb cassandra
-psql cassandra -c "CREATE EXTENSION vector;"
+createdb arlo
+psql arlo -c "CREATE EXTENSION vector;"
 
-# Ollama models
-ollama pull nomic-embed-text    # Embeddings (768d, fast)
-ollama pull llama3.3:70b        # Diverse forecaster (runs on M-series)
-ollama pull qwen2.5-coder:32b   # Code assistance
 
 # Python environment
 python3.12 -m venv .venv
@@ -1265,23 +1251,23 @@ cd whisper.cpp && make -j && cd ..
 
 ```cron
 # Ingestion
-*/30 * * * * cassandra ingest --source markets          # Every 30 min
-0 */2 * * *  cassandra ingest --source news              # Every 2 hours
-0 */6 * * *  cassandra ingest --source substack           # Every 6 hours
-0 4 * * *    cassandra ingest --source youtube            # Daily at 4am
-0 5 * * 0    cassandra ingest --source economic --full    # Weekly Sunday 5am
+*/30 * * * * arlo ingest --source markets          # Every 30 min
+0 */2 * * *  arlo ingest --source news              # Every 2 hours
+0 */6 * * *  arlo ingest --source substack           # Every 6 hours
+0 4 * * *    arlo ingest --source youtube            # Daily at 4am
+0 5 * * 0    arlo ingest --source economic --full    # Weekly Sunday 5am
 
 # Discovery & Questioning
-0 6 * * *    cassandra discover --window 7d              # Daily at 6am
-0 7 * * 1    cassandra question --from-discovery         # Weekly Monday 7am
+0 6 * * *    arlo discover --window 7d              # Daily at 6am
+0 7 * * 1    arlo question --from-discovery         # Weekly Monday 7am
 
 # Forecasting
-0 8 * * *    cassandra forecast --all-active             # Daily at 8am
-0 9 * * *    cassandra scan-edges                         # Daily at 9am
+0 8 * * *    arlo forecast --all-active             # Daily at 8am
+0 9 * * *    arlo scan-edges                         # Daily at 9am
 
 # Learning
-0 10 * * 0   cassandra score                              # Weekly Sunday 10am
-0 11 1 * *   cassandra audit                              # Monthly 1st at 11am
+0 10 * * 0   arlo score                              # Weekly Sunday 10am
+0 11 1 * *   arlo audit                              # Monthly 1st at 11am
 ```
 
 ### 13.3 Resource Estimates (Mac Studio M2 Ultra, 192GB RAM)
@@ -1290,9 +1276,6 @@ cd whisper.cpp && make -j && cd ..
 |---------|-----|-----|------|-------|
 | PostgreSQL + pgvector | 8-16 GB | — | 50 GB | Growing with document corpus |
 | DuckDB | 2-4 GB | — | 20 GB | Economic time series |
-| Ollama llama3.3:70b | 40-45 GB | Apple Neural Engine | 40 GB model | Runs well on M-series |
-| Ollama nomic-embed-text | 0.5 GB | ANE | 0.3 GB model | Very fast |
-| Ollama qwen2.5-coder:32b | 20 GB | ANE | 20 GB model | For code tasks |
 | Whisper.cpp | 2 GB | ANE | 1.5 GB model | Only when transcribing |
 | Python processes | 4-8 GB | — | — | Polars, HDBSCAN, etc. |
 | **Total peak** | **~90 GB** | | **~130 GB** | Fits in 192GB with headroom |
@@ -1303,16 +1286,16 @@ cd whisper.cpp && make -j && cd ..
 
 ### 14.1 vs. Mantic
 
-Mantic is a purpose-built AI forecasting engine with custom RL training on forecasting data. Cassandra cannot replicate that. What Cassandra does differently:
+Mantic is a purpose-built AI forecasting engine with custom RL training on forecasting data. Arlo cannot replicate that. What Arlo does differently:
 
-1. **Question generation is the primary output.** Mantic answers questions. Cassandra asks them first.
+1. **Question generation is the primary output.** Mantic answers questions. Arlo asks them first.
 2. **Transparent reasoning chain.** Every forecast includes the full Five Whys, Neustadt-May oscillation, and naive questioning chain. Mantic's reasoning is a black box.
-3. **Integrated trading.** Mantic provides predictions. Cassandra trades on them.
-4. **Publication pipeline.** Cassandra is built to produce essays and charts, not just probabilities.
+3. **Integrated trading.** Mantic provides predictions. Arlo trades on them.
+4. **Publication pipeline.** Arlo is built to produce essays and charts, not just probabilities.
 
 ### 14.2 vs. Good Judgment
 
-Good Judgment uses human superforecasters with a proprietary aggregation algorithm. Cassandra:
+Good Judgment uses human superforecasters with a proprietary aggregation algorithm. Arlo:
 
 1. **Operates 24/7** without human forecaster availability constraints
 2. **Scales to thousands of questions** simultaneously
@@ -1321,7 +1304,7 @@ Good Judgment uses human superforecasters with a proprietary aggregation algorit
 
 ### 14.3 vs. Metaculus Forecasting Tools
 
-The Metaculus `forecasting-tools` repository provides a bot framework for answering Metaculus questions. Cassandra:
+The Metaculus `forecasting-tools` repository provides a bot framework for answering Metaculus questions. Arlo:
 
 1. **Starts upstream** — ingests raw signal, not pre-formed questions
 2. **Multi-source ensemble** — not just LLM prompting
@@ -1335,7 +1318,7 @@ The Metaculus `forecasting-tools` repository provides a bot framework for answer
 ### Phase 1: Foundation (Weeks 1-3)
 - Database setup (PostgreSQL + pgvector + DuckDB)
 - Ingestion pipeline (YouTube, Substack, RSS, Metaculus API, Kalshi API)
-- Embedding pipeline (Ollama nomic-embed-text)
+- Embedding pipeline (sentence-transformers)
 - CLI skeleton (typer + rich)
 - Basic forecasting: Claude Opus 4.6 single-agent forecaster on Metaculus questions
 
@@ -1348,7 +1331,7 @@ The Metaculus `forecasting-tools` repository provides a bot framework for answer
 - Question operationalization pipeline
 
 ### Phase 3: Forecast Ensemble (Weeks 7-9)
-- Multi-component forecasting (Claude deep, Claude adversary, Ollama, market-implied, base rate, time series)
+- Multi-component forecasting (Claude deep, Claude adversary, market-implied, base rate, time series)
 - Aggregation algorithm with extremization
 - Calibration tracking and Brier scoring
 - Forecast update triggers
@@ -1388,18 +1371,17 @@ The Metaculus `forecasting-tools` repository provides a bot framework for answer
 ## 17. OPEN QUESTIONS & RISKS
 
 1. **Claude API rate limits under Max subscription:** Need to confirm how many API calls per day are available. May need to batch requests efficiently.
-2. **Ollama 70B model performance on M-series:** Real-world inference speed for llama3.3:70b needs benchmarking. May need to drop to 32B if too slow.
 3. **Brave Search free tier (2000 queries/month):** May need to supplement with other free search APIs or use local search over ingested corpus.
 4. **Kalshi account verification and funding requirements:** Need active funded account for trading.
 5. **IBKR TWS API requires TWS or IB Gateway running:** Need to keep TWS running on Mac Studio.
 6. **Legal considerations for automated trading on prediction markets:** Review Kalshi and IBKR terms of service for bot trading.
-7. **Reflexivity in trading:** The very act of trading on Cassandra's forecasts may move thin markets and reduce edge.
+7. **Reflexivity in trading:** The very act of trading on Arlo's forecasts may move thin markets and reduce edge.
 
 ---
 
 *"The future belongs to adults who can think like four-year-olds." — Dan Gardner*
 
-*Cassandra is the four-year-old with a PostgreSQL database and a trading account.*
+*Arlo is the four-year-old with a PostgreSQL database and a trading account.*
 
 
 Implement the full pipeline.

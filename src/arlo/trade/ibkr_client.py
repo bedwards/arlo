@@ -6,7 +6,7 @@ from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 from ibapi.order import Order
 
-from pmcli.config import ForecastExConfig
+from arlo.config import ForecastExConfig
 
 
 class IBConnection(EWrapper, EClient):
@@ -40,7 +40,7 @@ class IBConnection(EWrapper, EClient):
     def error(self, reqId, errorCode, errorString, advancedOrderRejectJson=""):
         # Filter out informational messages
         if errorCode not in (2104, 2106, 2158):
-            from pmcli.display import print_error
+            from arlo.shared.display import print_error
 
             print_error(f"IB [{errorCode}]: {errorString}")
 
@@ -138,7 +138,7 @@ def make_fx_order(quantity, price, tif="GTC"):
     """Build a ForecastEx limit buy order.
 
     ForecastEx only allows BUY orders with LMT type.
-    To exit a position, buy the opposing contract (C↔P).
+    To exit a position, buy the opposing contract (C<->P).
     """
     o = Order()
     o.action = "BUY"
