@@ -28,9 +28,9 @@ class BraveSearchConfig(BaseModel):
 
 
 class KalshiConfig(BaseModel):
-    api_key_id: str = Field(default="")
-    private_key_path: str = Field(default="")
-    host: str = Field(default="https://api.elections.kalshi.com/trade-api/v2")
+    api_key_id: str = Field(default_factory=lambda: os.environ.get("KALSHI_API_KEY_ID", ""))
+    private_key_path: str = Field(default_factory=lambda: os.environ.get("KALSHI_PRIVATE_KEY_PATH", ""))
+    host: str = Field(default_factory=lambda: os.environ.get("KALSHI_API_HOST", "https://api.elections.kalshi.com/trade-api/v2"))
 
     @property
     def private_key_pem(self) -> str:
@@ -43,9 +43,13 @@ class KalshiConfig(BaseModel):
 
 
 class IBKRConfig(BaseModel):
-    tws_host: str = Field(default="127.0.0.1")
-    tws_port: int = Field(default=7497)
-    client_id: int = Field(default=1)
+    tws_host: str = Field(default_factory=lambda: os.environ.get("IB_TWS_HOST", "127.0.0.1"))
+    tws_port: int = Field(default_factory=lambda: int(os.environ.get("IB_TWS_PORT", "7497")))
+    client_id: int = Field(default_factory=lambda: int(os.environ.get("IB_CLIENT_ID", "1")))
+
+
+# Backward compatibility alias
+ForecastExConfig = IBKRConfig
 
 
 class IngestConfig(BaseModel):
