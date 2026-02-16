@@ -17,12 +17,79 @@ def ingest(
     full: bool = typer.Option(False, help="Full refresh (for economic data)"),
 ):
     """Run ingestion for a specific source."""
+    from rich.console import Console
+    console = Console()
+
     if source == "economic":
         from arlo.ingest.economic import ingest_economic
         ingest_economic(full=full)
+    elif source == "markets":
+        from arlo.ingest.markets import ingest_markets, search_education_markets
+        from arlo.db.postgres import get_session
+
+        console.print("[bold]Ingesting prediction market data...[/bold]")
+        session = get_session()
+        try:
+            snapshots = ingest_markets(session)
+            console.print(
+                f"[green]Ingested {len(snapshots)} market snapshots.[/green]"
+            )
+
+            # Show per-platform breakdown
+            platforms: dict[str, int] = {}
+            for s in snapshots:
+                platforms[s.platform] = platforms.get(s.platform, 0) + 1
+            for platform, count in sorted(platforms.items()):
+                console.print(f"  {platform}: {count}")
+
+            # Show education-related markets
+            edu = search_education_markets(snapshots=snapshots)
+            if edu:
+                console.print(
+                    f"\n[bold]Education-related markets: {len(edu)}[/bold]"
+                )
+                for s in edu[:10]:
+                    prob = f"{s.current_probability:.0%}" if s.current_probability is not None else "N/A"
+                    console.print(f"  [{s.platform}] {s.title} ({prob})")
+        except Exception as exc:
+            console.print(f"[red]Error ingesting markets: {exc}[/red]")
+            raise typer.Exit(1)
+        finally:
+            session.close()
+    elif source == "youtube":
+        from arlo.ingest.youtube import ingest_youtube
+
+        console.print("[bold blue]Starting YouTube ingestion...[/bold blue]")
+        if channel:
+            console.print(f"  Filtering to channel: {channel}")
+        try:
+            count = ingest_youtube(channel_filter=channel)
+            console.print(f"[green]YouTube ingestion complete: {count} new documents.[/green]")
+        except Exception as e:
+            console.print(f"[red]YouTube ingestion failed: {e}[/red]")
+            raise typer.Exit(1)
+    elif source == "substack":
+        from arlo.ingest.substack import ingest_all_substacks
+
+        console.print("[bold]Ingesting Substack publications...[/bold]")
+        total = ingest_all_substacks(publication_filter=channel)
+        if total > 0:
+            console.print(f"[green]Ingested {total} new document(s) from Substack.[/green]")
+        else:
+            console.print("[yellow]No new documents ingested from Substack.[/yellow]")
+    elif source == "news":
+        from arlo.ingest.pipeline import get_pipeline
+
+        pipeline = get_pipeline()
+        console.print(f"[bold]Running ingestion for [cyan]{source}[/cyan]...[/bold]")
+        try:
+            pipeline.run(source)
+            console.print(f"[green]Ingestion complete for {source}.[/green]")
+        except Exception as e:
+            console.print(f"[red]Ingestion failed: {e}[/red]")
+            raise typer.Exit(1)
     else:
-        from rich.console import Console
-        Console().print(f"[yellow]ingest {source} not yet implemented[/yellow]")
+        console.print(f"[yellow]ingest {source} not yet implemented[/yellow]")
 
 # --- Discover commands ---
 @app.command()
