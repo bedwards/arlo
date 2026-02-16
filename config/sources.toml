@@ -1,0 +1,89 @@
+# Arlo data sources configuration
+# Each source type has a list of entries with name, url, and optional metadata.
+
+[rss]
+# RSS/Atom feeds
+
+[[rss.feeds]]
+name = "Texas Tribune"
+url = "https://www.texastribune.org/feeds/latest/"
+category = "news"
+tags = ["texas", "education", "politics"]
+
+[[rss.feeds]]
+name = "Texas Tribune - Education"
+url = "https://www.texastribune.org/topics/education/feed/"
+category = "news"
+tags = ["texas", "education"]
+
+[substack]
+# Substack publications (use /feed URL)
+
+[[substack.publications]]
+name = "PastPresentFuture (Dan Gardner)"
+url = "https://dgardner.substack.com/feed"
+tags = ["forecasting", "superforecasting"]
+
+[youtube]
+# YouTube channels to monitor
+
+[[youtube.channels]]
+name = "PBS NewsHour"
+channel_id = "@pbsnewshour"
+tags = ["news", "education"]
+
+[[youtube.channels]]
+name = "Texas Tribune"
+channel_id = "@texastribune"
+tags = ["texas", "education", "politics"]
+
+[markets]
+# Prediction market platforms
+
+[[markets.platforms]]
+name = "Metaculus"
+api_base = "https://www.metaculus.com/api2"
+enabled = true
+
+[[markets.platforms]]
+name = "Kalshi"
+api_base = "https://api.elections.kalshi.com/trade-api/v2"
+enabled = true
+
+[[markets.platforms]]
+name = "Polymarket"
+api_base = "https://clob.polymarket.com"
+enabled = true
+
+[[markets.platforms]]
+name = "Manifold"
+api_base = "https://api.manifold.markets/v0"
+enabled = true
+
+[economic]
+# Government data sources
+
+[[economic.sources]]
+name = "FRED"
+api_base = "https://api.stlouisfed.org/fred"
+series = ["UNRATE", "CPIAUCSL", "GDP", "FEDFUNDS"]
+
+[[economic.sources]]
+name = "Census"
+api_base = "https://api.census.gov/data"
+datasets = ["acs/acs5"]
+
+[[economic.sources]]
+name = "BLS"
+api_base = "https://api.bls.gov/publicAPI/v2"
+series = ["CES0000000001", "LNS14000000"]
+
+[[economic.sources]]
+name = "NCES"
+url = "https://nces.ed.gov/ccd/schoolsearch/"
+tags = ["education", "waco"]
+
+[[economic.sources]]
+name = "TEA"
+url = "https://tea.texas.gov/reports-and-data"
+tags = ["texas", "education", "waco"]
