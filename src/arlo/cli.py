@@ -18,7 +18,22 @@ def ingest(
 ):
     """Run ingestion for a specific source."""
     from rich.console import Console
-    Console().print(f"[yellow]ingest {source} not yet implemented[/yellow]")
+    console = Console()
+
+    if source == "youtube":
+        from arlo.ingest.youtube import ingest_youtube
+
+        console.print(f"[bold blue]Starting YouTube ingestion...[/bold blue]")
+        if channel:
+            console.print(f"  Filtering to channel: {channel}")
+        try:
+            count = ingest_youtube(channel_filter=channel)
+            console.print(f"[green]YouTube ingestion complete: {count} new documents.[/green]")
+        except Exception as e:
+            console.print(f"[red]YouTube ingestion failed: {e}[/red]")
+            raise typer.Exit(1)
+    else:
+        console.print(f"[yellow]ingest {source} not yet implemented[/yellow]")
 
 # --- Discover commands ---
 @app.command()
