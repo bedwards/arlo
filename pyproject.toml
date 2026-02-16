@@ -76,7 +76,7 @@ dev = [
 ]
 
 [project.scripts]
-arlo = "arlo.cli:app"
+arlo = "arlo.cli:_cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
