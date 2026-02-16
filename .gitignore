@@ -12,6 +12,7 @@ venv/
 .env
 *.pem
 *.key
+config/credentials.toml
 
 # IDE
 .idea/
@@ -20,3 +21,9 @@ venv/
 
 # OS
 .DS_Store
+
+# Arlo output and data (large/generated files)
+output/*
+!output/*/.gitkeep
+data/*
+!data/*/.gitkeep

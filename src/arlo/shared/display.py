@@ -1,4 +1,4 @@
-import click
+import typer
 from rich.console import Console
 from rich.table import Table
 
@@ -29,4 +29,4 @@ def confirm_order(details):
     console.print("\n[bold yellow]Order Preview:[/bold yellow]")
     for k, v in details.items():
         console.print(f"  {k}: {v}")
-    return click.confirm("Place this order?", default=False)
+    return typer.confirm("Place this order?", default=False)
