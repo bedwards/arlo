@@ -18,24 +18,30 @@ def ingest(
 ):
     """Run ingestion for a specific source."""
     from rich.console import Console
-    from arlo.ingest.pipeline import get_pipeline
-
     console = Console()
-    pipeline = get_pipeline()
 
-    if source not in pipeline.registered_types:
-        available = ", ".join(pipeline.registered_types)
-        console.print(f"[red]Unknown source type: {source}[/red]")
-        console.print(f"Available: {available}")
-        raise typer.Exit(1)
+    if source == "substack":
+        from arlo.ingest.substack import ingest_all_substacks
 
-    console.print(f"[bold]Running ingestion for [cyan]{source}[/cyan]...[/bold]")
-    try:
-        pipeline.run(source)
-        console.print(f"[green]Ingestion complete for {source}.[/green]")
-    except Exception as e:
-        console.print(f"[red]Ingestion failed: {e}[/red]")
-        raise typer.Exit(1)
+        console.print("[bold]Ingesting Substack publications...[/bold]")
+        total = ingest_all_substacks(publication_filter=channel)
+        if total > 0:
+            console.print(f"[green]Ingested {total} new document(s) from Substack.[/green]")
+        else:
+            console.print("[yellow]No new documents ingested from Substack.[/yellow]")
+    elif source == "news":
+        from arlo.ingest.pipeline import get_pipeline
+
+        pipeline = get_pipeline()
+        console.print(f"[bold]Running ingestion for [cyan]{source}[/cyan]...[/bold]")
+        try:
+            pipeline.run(source)
+            console.print(f"[green]Ingestion complete for {source}.[/green]")
+        except Exception as e:
+            console.print(f"[red]Ingestion failed: {e}[/red]")
+            raise typer.Exit(1)
+    else:
+        console.print(f"[yellow]ingest {source} not yet implemented[/yellow]")
 
 # --- Discover commands ---
 @app.command()
