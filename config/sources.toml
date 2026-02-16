@@ -24,6 +24,26 @@ name = "PastPresentFuture (Dan Gardner)"
 url = "https://dgardner.substack.com/feed"
 tags = ["forecasting", "superforecasting"]
 
+[[substack.publications]]
+name = "Slow Boring (Matt Yglesias)"
+url = "https://www.slowboring.com/feed"
+tags = ["policy", "education", "economics"]
+
+[[substack.publications]]
+name = "Noahpinion (Noah Smith)"
+url = "https://www.noahpinion.blog/feed"
+tags = ["economics", "education", "policy"]
+
+[[substack.publications]]
+name = "Silver Bulletin (Nate Silver)"
+url = "https://www.natesilver.net/feed"
+tags = ["forecasting", "statistics", "prediction-markets"]
+
+[[substack.publications]]
+name = "Ed Post"
+url = "https://edpost.substack.com/feed"
+tags = ["education", "policy"]
+
 [youtube]
 # YouTube channels to monitor
 
