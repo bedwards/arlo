@@ -18,7 +18,43 @@ def ingest(
 ):
     """Run ingestion for a specific source."""
     from rich.console import Console
-    Console().print(f"[yellow]ingest {source} not yet implemented[/yellow]")
+    console = Console()
+
+    if source == "markets":
+        from arlo.ingest.markets import ingest_markets, search_education_markets
+        from arlo.db.postgres import get_session
+
+        console.print("[bold]Ingesting prediction market data...[/bold]")
+        session = get_session()
+        try:
+            snapshots = ingest_markets(session)
+            console.print(
+                f"[green]Ingested {len(snapshots)} market snapshots.[/green]"
+            )
+
+            # Show per-platform breakdown
+            platforms: dict[str, int] = {}
+            for s in snapshots:
+                platforms[s.platform] = platforms.get(s.platform, 0) + 1
+            for platform, count in sorted(platforms.items()):
+                console.print(f"  {platform}: {count}")
+
+            # Show education-related markets
+            edu = search_education_markets(snapshots=snapshots)
+            if edu:
+                console.print(
+                    f"\n[bold]Education-related markets: {len(edu)}[/bold]"
+                )
+                for s in edu[:10]:
+                    prob = f"{s.current_probability:.0%}" if s.current_probability is not None else "N/A"
+                    console.print(f"  [{s.platform}] {s.title} ({prob})")
+        except Exception as exc:
+            console.print(f"[red]Error ingesting markets: {exc}[/red]")
+            raise typer.Exit(1)
+        finally:
+            session.close()
+    else:
+        console.print(f"[yellow]ingest {source} not yet implemented[/yellow]")
 
 # --- Discover commands ---
 @app.command()
