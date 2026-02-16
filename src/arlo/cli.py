@@ -18,7 +18,24 @@ def ingest(
 ):
     """Run ingestion for a specific source."""
     from rich.console import Console
-    Console().print(f"[yellow]ingest {source} not yet implemented[/yellow]")
+    from arlo.ingest.pipeline import get_pipeline
+
+    console = Console()
+    pipeline = get_pipeline()
+
+    if source not in pipeline.registered_types:
+        available = ", ".join(pipeline.registered_types)
+        console.print(f"[red]Unknown source type: {source}[/red]")
+        console.print(f"Available: {available}")
+        raise typer.Exit(1)
+
+    console.print(f"[bold]Running ingestion for [cyan]{source}[/cyan]...[/bold]")
+    try:
+        pipeline.run(source)
+        console.print(f"[green]Ingestion complete for {source}.[/green]")
+    except Exception as e:
+        console.print(f"[red]Ingestion failed: {e}[/red]")
+        raise typer.Exit(1)
 
 # --- Discover commands ---
 @app.command()
