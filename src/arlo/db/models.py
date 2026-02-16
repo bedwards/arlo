@@ -283,7 +283,7 @@ class Position(Base):
     exit_price: Mapped[float | None] = mapped_column(Float)
     exit_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     pnl: Mapped[float | None] = mapped_column(Float)
-    cassandra_prob_at_entry: Mapped[float | None] = mapped_column(Float)
+    arlo_prob_at_entry: Mapped[float | None] = mapped_column(Float)
     market_prob_at_entry: Mapped[float | None] = mapped_column(Float)
     edge_at_entry: Mapped[float | None] = mapped_column(Float)
     status: Mapped[str] = mapped_column(Text, default="open")  # open, closed, expired

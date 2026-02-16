@@ -205,7 +205,7 @@ def upgrade() -> None:
         sa.Column("exit_price", sa.Float),
         sa.Column("exit_date", sa.DateTime(timezone=True)),
         sa.Column("pnl", sa.Float),
-        sa.Column("cassandra_prob_at_entry", sa.Float),
+        sa.Column("arlo_prob_at_entry", sa.Float),
         sa.Column("market_prob_at_entry", sa.Float),
         sa.Column("edge_at_entry", sa.Float),
         sa.Column("status", sa.Text, server_default=sa.text("'open'")),
