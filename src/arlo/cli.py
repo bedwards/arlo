@@ -20,7 +20,19 @@ def ingest(
     from rich.console import Console
     console = Console()
 
-    if source == "substack":
+    if source == "youtube":
+        from arlo.ingest.youtube import ingest_youtube
+
+        console.print("[bold blue]Starting YouTube ingestion...[/bold blue]")
+        if channel:
+            console.print(f"  Filtering to channel: {channel}")
+        try:
+            count = ingest_youtube(channel_filter=channel)
+            console.print(f"[green]YouTube ingestion complete: {count} new documents.[/green]")
+        except Exception as e:
+            console.print(f"[red]YouTube ingestion failed: {e}[/red]")
+            raise typer.Exit(1)
+    elif source == "substack":
         from arlo.ingest.substack import ingest_all_substacks
 
         console.print("[bold]Ingesting Substack publications...[/bold]")
