@@ -18,7 +18,19 @@ def ingest(
 ):
     """Run ingestion for a specific source."""
     from rich.console import Console
-    Console().print(f"[yellow]ingest {source} not yet implemented[/yellow]")
+    console = Console()
+
+    if source == "substack":
+        from arlo.ingest.substack import ingest_all_substacks
+
+        console.print("[bold]Ingesting Substack publications...[/bold]")
+        total = ingest_all_substacks(publication_filter=channel)
+        if total > 0:
+            console.print(f"[green]Ingested {total} new document(s) from Substack.[/green]")
+        else:
+            console.print("[yellow]No new documents ingested from Substack.[/yellow]")
+    else:
+        console.print(f"[yellow]ingest {source} not yet implemented[/yellow]")
 
 # --- Discover commands ---
 @app.command()
