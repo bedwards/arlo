@@ -20,7 +20,10 @@ def ingest(
     from rich.console import Console
     console = Console()
 
-    if source == "markets":
+    if source == "economic":
+        from arlo.ingest.economic import ingest_economic
+        ingest_economic(full=full)
+    elif source == "markets":
         from arlo.ingest.markets import ingest_markets, search_education_markets
         from arlo.db.postgres import get_session
 
