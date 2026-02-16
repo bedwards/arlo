@@ -29,6 +29,17 @@ def ingest(
             console.print(f"[green]Ingested {total} new document(s) from Substack.[/green]")
         else:
             console.print("[yellow]No new documents ingested from Substack.[/yellow]")
+    elif source == "news":
+        from arlo.ingest.pipeline import get_pipeline
+
+        pipeline = get_pipeline()
+        console.print(f"[bold]Running ingestion for [cyan]{source}[/cyan]...[/bold]")
+        try:
+            pipeline.run(source)
+            console.print(f"[green]Ingestion complete for {source}.[/green]")
+        except Exception as e:
+            console.print(f"[red]Ingestion failed: {e}[/red]")
+            raise typer.Exit(1)
     else:
         console.print(f"[yellow]ingest {source} not yet implemented[/yellow]")
 
