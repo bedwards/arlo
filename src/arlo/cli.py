@@ -9,11 +9,9 @@ app = typer.Typer(
 )
 
 # --- Ingest commands ---
-ingest_app = typer.Typer(help="Data ingestion commands")
-app.add_typer(ingest_app, name="ingest")
 
-@ingest_app.command("run")
-def ingest_run(
+@app.command()
+def ingest(
     source: str = typer.Option(..., help="Source type: youtube, substack, news, markets, economic, academic"),
     channel: str = typer.Option(None, help="Specific channel/publication (for youtube/substack)"),
     full: bool = typer.Option(False, help="Full refresh (for economic data)"),
@@ -42,11 +40,9 @@ def question(
     Console().print("[yellow]question not yet implemented[/yellow]")
 
 # --- Forecast commands ---
-forecast_app = typer.Typer(help="Forecasting commands")
-app.add_typer(forecast_app, name="forecast")
 
-@forecast_app.command("run")
-def forecast_run(
+@app.command()
+def forecast(
     question_id: int = typer.Option(None, help="Forecast specific question"),
     all_active: bool = typer.Option(False, "--all-active", help="Forecast all active questions"),
 ):
@@ -173,6 +169,10 @@ def kalshi_buy(
     """Buy yes or no contracts on Kalshi."""
     from arlo.trade.kalshi_client import get_client, create_order
     from arlo.shared.display import console, print_error, confirm_order
+    side = side.lower()
+    if side not in ("yes", "no"):
+        print_error("Side must be 'yes' or 'no'.")
+        raise typer.Exit(1)
     if not 1 <= price <= 99:
         print_error("Price must be between 1 and 99 cents.")
         return
