@@ -17,8 +17,12 @@ def ingest(
     full: bool = typer.Option(False, help="Full refresh (for economic data)"),
 ):
     """Run ingestion for a specific source."""
-    from rich.console import Console
-    Console().print(f"[yellow]ingest {source} not yet implemented[/yellow]")
+    if source == "economic":
+        from arlo.ingest.economic import ingest_economic
+        ingest_economic(full=full)
+    else:
+        from rich.console import Console
+        Console().print(f"[yellow]ingest {source} not yet implemented[/yellow]")
 
 # --- Discover commands ---
 @app.command()
